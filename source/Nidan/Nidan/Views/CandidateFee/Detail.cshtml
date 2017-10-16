@@ -1,0 +1,417 @@
+﻿@using Nidan.Business.Enum
+@using Nidan.Entity
+@using Nidan.Models
+@using ModelBinderAttribute = System.Web.Http.ModelBinding.ModelBinderAttribute
+@model Nidan.Models.CandidateFeeViewModel
+
+@{
+    ViewBag.Title = "Detail";
+}
+@*@{
+        int value = CandidateFee.FeeTypeId;
+        FeeType feeType = (FeeType)value;
+    }*@
+
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div ng-controller="CandidateFeeController as model" ng-init="model.initialise(@Model.CandidateInstallmentId)">
+            <div class="x_panel">
+                <div class="x_title">
+                    <h2><button type="button" class="btn btn-round btn-info btn-lg">@Model.CandidateName</button> Candidate Fees Details<small></small></h2>
+                    <div class="clearfix"></div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="col-lg-4">
+                            <div class="input-group">
+                                <span class="input-group-btn">
+                                    <button type="button" class="btn btn-dark">Total Fees</button>
+                                </span>
+                                <input type="text" disabled="disabled" value="{{model.totalCourseFee}}" class="form-control col-lg-4">
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="input-group">
+                                <span class="input-group-btn">
+                                    <button type="button" class="btn btn-dark">Total Paid Fee</button>
+                                </span>
+                                <input type="text" disabled="disabled" value="{{model.totalPaidFee}}" class="form-control col-lg-4">
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="input-group">
+                                <span class="input-group-btn">
+                                    <button type="button" class="btn btn-dark">Balance Fee</button>
+                                </span>
+                                <input type="text" disabled="disabled" value="{{model.balanceFee}}" class="form-control col-lg-4">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="x_content">
+                    <p class="text-muted font-13 m-b-30">
+                    </p>
+
+                    <div id="datatable_wrapper" class="dataTables_wrapper form-inline dt-bootstrap no-footer">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <table wt-responsive-table class="table table-striped table-bordered jambo_table table-hover dataTable no-footer" role="grid" aria-describedby="datatable-fixed-header_info">
+                                    <thead>
+                                        <tr role="row">
+                                            <th>Fee Type</th>
+                                            <th>Due Date</th>
+                                            <th>Amount To Be Paid</th>
+                                            <th>Payment Date</th>
+                                            <th>Payment Mode</th>
+                                            <th>Paid Amount</th>
+                                            <th>Payment Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr ng-repeat="candidateFee in model.candidateFees" class="odd gradeX">
+                                            <td>
+                                                <span ng-bind="candidateFee.FeeType"></span>
+                                            </td>
+                                            <td><span ng-bind="candidateFee.InstallmentDate|date : format : shortDate"></span></td>
+                                            <td><span class="fa fa-inr" ng-if="candidateFee.InstallmentAmount!=null" ng-bind="candidateFee.InstallmentAmount"></span></td>
+                                            <td><span ng-bind="candidateFee.PaymentDate|date : format : shortDate"></span></td>
+                                            <td>
+                                                <span ng-if="candidateFee.IsPaymentDone" ng-bind="candidateFee.PaymentMode"></span>
+                                            </td>
+                                            <td>
+                                                <span class="fa fa-inr" ng-if="candidateFee.IsPaymentDone" ng-bind="candidateFee.PaidAmount"></span>
+                                            </td>
+                                            <td class="col-lg-1">
+                                                <button ng-if="!candidateFee.IsPaymentDone" type="button" class="btn btn-round btn-danger btn-xs">Pending</button>
+                                                <button ng-if="candidateFee.IsPaymentDone" type="button" class="btn btn-round btn-success btn-xs">Done</button>
+                                            </td>
+                                            <td>
+                                                <button id="btnPayFee" type="button" ng-disabled="!(candidateFee.InstallmentDate==candidateFee.NextInstallmentDate && candidateFee.InstallmentDate )" class="btn btn-success" ng-click="model.openCandidateFeeModalPopUp(candidateFee.CandidateFeeId)" data-toggle="modal" data-target="#candidateFeeModal"><i class="fa fa-credit-card"></i> Pay</button>
+                                                <button id="btn" class="btn btn-default" ng-disabled="!candidateFee.IsPaymentDone" ng-click="model.print(candidateFee.CandidateFeeId)"><i class="fa fa-print"></i> Print</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        @*     @Html.Partial("Pagination/_pagination")*@
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <label ng-bind="model.searchMessage"></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <a href="@Url.Action("Index")" class="btn btn-primary" role="button">
+                    <span class="fa fa-chevron-left"></span>&nbsp;Back to list
+                </a>
+            </div>
+            @Html.HiddenFor(model => model.CandidateInstallmentId)
+            @Html.HiddenFor(model => model.CandidateFee.CandidateFeeId)
+            @Html.AntiForgeryToken()
+            @Html.Partial("_CandidateFee")
+        </div>
+    </div>
+</div>
+@section scripts
+{
+    <script>
+        $("#chequeDetailDiv").hide();
+        $("#haveReceiptDiv").hide();
+        $("#txtChequeDate").val('');
+        $("#overrideFeeDiv").hide();
+        $('#haveReceiptCheckbox').attr('checked', false);
+        $('#overrideFeeCheckbox').attr('checked', false);
+
+        if ($('#dropDownPaymentMode :selected').text() == "Select Payment Mode") {
+            $('#btnSaveCandidateFee').attr('disabled', true);
+        }
+
+        $("#dropDownPaymentMode").change(function () {
+            if ($('#dropDownPaymentMode :selected').text() == "Select Payment Mode") {
+                $('#btnSaveCandidateFee').attr('disabled', true);
+            }
+            if ($('#dropDownPaymentMode :selected').text() == "Cash") {
+
+                $('#btnSaveCandidateFee').attr('disabled', false);
+                $("#chequeDetailDiv").hide();
+            }
+            if ($('#dropDownPaymentMode :selected').text() == "Cheque") {
+                $('#btnSaveCandidateFee').attr('disabled', true);
+                $("#chequeDetailDiv").show();
+                $("#txtChequeDate").val('');
+                var chequeDate = $("#txtChequeDate").val();
+                var bankName = $("#txtBankName").val();
+                var chequeNumber = $("#txtChequeNumber").val();
+                if (chequeDate != "" && bankName != "" && chequeNumber != "") {
+                    $('#btnSaveCandidateFee').attr('disabled', false);
+                }
+            }
+        });
+
+        $('#txtChequeDate').keyup(function () {
+            var chequeDate = $("#txtChequeDate").val();
+            var bankName = $("#txtBankName").val();
+            var chequeNumber = $("#txtChequeNumber").val();
+            if (chequeDate != "" && bankName != "" && chequeNumber != "") {
+                $('#btnSaveCandidateFee').attr('disabled', false);
+            } else {
+                $('#btnSaveCandidateFee').attr('disabled', true);
+            }
+        });
+
+        $('#txtBankName').keyup(function () {
+            var chequeDate = $("#txtChequeDate").val();
+            var bankName = $("#txtBankName").val();
+            var chequeNumber = $("#txtChequeNumber").val();
+            if (chequeDate != "" && bankName != "" && chequeNumber != "") {
+                $('#btnSaveCandidateFee').attr('disabled', false);
+            } else {
+                $('#btnSaveCandidateFee').attr('disabled', true);
+            }
+        });
+
+        $('#txtChequeNumber').keyup(function () {
+            var chequeDate = $("#txtChequeDate").val();
+            var bankName = $("#txtBankName").val();
+            var chequeNumber = $("#txtChequeNumber").val();
+            if (chequeDate != "" && bankName != "" && chequeNumber != "") {
+                $('#btnSaveCandidateFee').attr('disabled', false);
+            } else {
+                $('#btnSaveCandidateFee').attr('disabled', true);
+            }
+        });
+
+        $(function () {
+            var daterangepickerOptions = {
+                autoApply: true,
+                singleDatePicker: true,
+                showDropdowns: true,
+                showCustomRangeLabel: false,
+                opens: 'left',
+                //minDate: moment(),
+                //maxDate: moment().add('2', 'days').format('DD MMMM YYYY'),
+                onSelect: function () {
+                    selectedDate = moment().format('DD MMMM YYYY');
+                },
+                locale: {
+                    "format": "DD MMMM YYYY"
+                }
+            };
+
+            jQuery(function () {
+                jQuery(".date").daterangepicker(daterangepickerOptions);
+                $('#GeneratedDate').val(moment().format('DD MMMM YYYY'));
+                $(".generated .date").on('apply.daterangepicker', function (ev, picker) {
+                    $(this).val(picker.startDate.format('DD MMMM YYYY'));
+                });
+            });
+        });
+        function onlyNumbers(evt) {
+            var e = event || evt; // For trans-browser compatibility
+            var charCode = e.which || e.keyCode;
+            if (charCode > 31 && (charCode < 48 || charCode > 57))
+                return false;
+            return true;
+        }
+        function NumToWord(inputNumber, outputControl) {
+            var str = new String(inputNumber);
+            var splt = str.split("");
+            var rev = splt.reverse();
+            var once = ['Zero', ' One', ' Two', ' Three', ' Four', ' Five', ' Six', ' Seven', ' Eight', ' Nine'];
+            var twos = ['Ten', ' Eleven', ' Twelve', ' Thirteen', ' Fourteen', ' Fifteen', ' Sixteen', ' Seventeen', ' Eighteen', ' Nineteen'];
+            var tens = ['', 'Ten', ' Twenty', ' Thirty', ' Forty', ' Fifty', ' Sixty', ' Seventy', ' Eighty', ' Ninety'];
+
+            numLength = rev.length;
+            var word = new Array();
+            var j = 0;
+
+            for (i = 0; i < numLength; i++) {
+                switch (i) {
+
+                    case 0:
+                        if ((rev[i] == 0) || (rev[i + 1] == 1)) {
+                            word[j] = '';
+                        }
+                        else {
+                            word[j] = '' + once[rev[i]];
+                        }
+                        word[j] = word[j];
+                        break;
+
+                    case 1:
+                        aboveTens();
+                        break;
+
+                    case 2:
+                        if (rev[i] == 0) {
+                            word[j] = '';
+                        }
+                        else if ((rev[i - 1] == 0) || (rev[i - 2] == 0)) {
+                            word[j] = once[rev[i]] + " Hundred ";
+                        }
+                        else {
+                            word[j] = once[rev[i]] + " Hundred and";
+                        }
+                        break;
+
+                    case 3:
+                        if (rev[i] == 0 || rev[i + 1] == 1) {
+                            word[j] = '';
+                        }
+                        else {
+                            word[j] = once[rev[i]];
+                        }
+                        if ((rev[i + 1] != 0) || (rev[i] > 0)) {
+                            word[j] = word[j] + " Thousand";
+                        }
+                        break;
+
+
+                    case 4:
+                        aboveTens();
+                        break;
+
+                    case 5:
+                        if ((rev[i] == 0) || (rev[i + 1] == 1)) {
+                            word[j] = '';
+                        }
+                        else {
+                            word[j] = once[rev[i]];
+                        }
+                        if (rev[i + 1] !== '0' || rev[i] > '0') {
+                            word[j] = word[j] + " Lakh";
+                        }
+
+                        break;
+
+                    case 6:
+                        aboveTens();
+                        break;
+
+                    case 7:
+                        if ((rev[i] == 0) || (rev[i + 1] == 1)) {
+                            word[j] = '';
+                        }
+                        else {
+                            word[j] = once[rev[i]];
+                        }
+                        if (rev[i + 1] !== '0' || rev[i] > '0') {
+                            word[j] = word[j] + " Crore";
+                        }
+                        break;
+
+                    case 8:
+                        aboveTens();
+                        break;
+                    default: break;
+                }
+                j++;
+            }
+
+            function aboveTens() {
+                if (rev[i] == 0) { word[j] = ''; }
+                else if (rev[i] == 1) { word[j] = twos[rev[i - 1]]; }
+                else { word[j] = tens[rev[i]]; }
+            }
+
+            word.reverse();
+            var finalOutput = '';
+            for (i = 0; i < numLength; i++) {
+                finalOutput = finalOutput + word[i];
+            }
+            document.getElementById(outputControl).innerHTML = finalOutput + " Only";
+        }
+        //======================================================================on payment mode selection enable submit payment button
+        //
+
+        $('#overrideFeeCheckbox')
+            .change(function () {
+                if ($('#overrideFeeCheckbox').is(":checked") == true) {
+                    $("#overrideFeeDiv").show();
+                    $('#btnSaveCandidateFee').attr('disabled', true);
+                } else {
+                    if ($('#dropDownPaymentMode :selected').text() == "Cash") {
+
+                        $('#btnSaveCandidateFee').attr('disabled', false);
+                    }
+                    $("#overrideFeeDiv").hide();
+                }
+            });
+
+        $('#haveReceiptCheckbox')
+            .change(function () {
+                if ($('#haveReceiptCheckbox').is(":checked") == true) {
+                    $("#haveReceiptDiv").show();
+                    var receipttext = $("#txtReceiptNumber").val();
+                    if ($('#dropDownPaymentMode :selected').text() == "Select Payment Mode") {
+                        $('#btnSaveCandidateFee').attr('disabled', true);
+                    }
+                    if (receipttext == "") {
+                        $('#btnSaveCandidateFee').attr('disabled', true);
+                    }
+                    else {
+                        $('#btnSaveCandidateFee').attr('disabled', false);
+                    }
+                } else {
+                    $("#haveReceiptDiv").hide();
+                    $('#btnSaveCandidateFee').attr('disabled', true);
+                }
+            });
+        //==============================================
+        $('#btn').click(function () {
+            var btn = $(this);
+            $.post({ delay: 3 }).complete(function () {
+                btn.prop('disabled', false);
+            });
+            btn.prop('disabled', true);
+
+        });
+        //========================================================= Paid Amount can not allow 0 as a first digit.
+        $('#txtPaidAmount').keyup(function () {
+            var paidAmount = $('#txtPaidAmount').val();
+            if (paidAmount == "") {
+                $('#btnSaveCandidateFee').attr('disabled', true);
+            } else {
+                $('#btnSaveCandidateFee').attr('disabled', false);
+            }
+            var myLength = $("#txtPaidAmount").val().length;
+            if (myLength == 1) //To check only when entering first character.
+            {
+                if ($(this).val() === '0') {
+                    if ($(this).val('')) {
+                        $('#btnSaveCandidateFee').attr('disabled', true);
+                    } else {
+                        $('#btnSaveCandidateFee').attr('disabled', false);
+                    }
+                    alert('0 is not allowed as first character');
+                    $(this).val('');
+                }
+            }
+        });
+
+        $('#txtReceiptNumber').keyup(function () {
+            var paidAmount = $('#txtReceiptNumber').val();
+            var paymentmodeDropdown = $('#dropDownPaymentMode :selected').text();
+            //$('#btnSaveCandidateFee').attr('disabled', true);
+            if (paidAmount == "") {
+                $('#btnSaveCandidateFee').attr('disabled', true);
+            } else {
+                if (paymentmodeDropdown == "Select Payment Mode") {
+                    $('#btnSaveCandidateFee').attr('disabled', true);
+                } else {
+                    $('#btnSaveCandidateFee').attr('disabled', false);
+                }
+
+            }
+        });
+
+        $('#btnCancel').click(function () {
+            window.location.reload(true);
+        });
+        //===========================================================================
+    </script>
+}

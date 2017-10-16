@@ -1,0 +1,6 @@
+[Bb]in
+[Dd]ebug*/
+[Pp]ackages
+obj/
+PublishProfiles/
+*.suo
