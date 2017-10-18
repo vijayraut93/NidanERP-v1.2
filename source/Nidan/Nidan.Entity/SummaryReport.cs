@@ -69,5 +69,9 @@ namespace Nidan.Entity
         [Column(Order = 5)]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int CandidateFeeId { get; set; }
+
+        public decimal? TotalPaidAmount { get; set; }
+
+        public decimal? BalanceAmount { get; set; }
     }
 }

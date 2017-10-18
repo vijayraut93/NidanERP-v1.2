@@ -2941,21 +2941,20 @@ namespace Nidan.Data
             }
         }
 
-        public PagedResult<MobilizationCentreReport> RetriveMobilizationCountReportByToday(int organisationId, Expression<Func<MobilizationCentreReport, bool>> predicate, List<OrderBy> orderBy = null,
-            Paging paging = null)
+        public PagedResult<MobilizationCentreReportMonthWise> RetriveMobilizationCountReportByMonthWise(int organisationId, Expression<Func<MobilizationCentreReportMonthWise, bool>> predicate, List<OrderBy> orderBy = null, Paging paging = null)
         {
             using (ReadUncommitedTransactionScope)
             using (var context = _databaseFactory.Create(organisationId))
             {
                 return context
-                    .MobilizationCentreReports
+                    .MobilizationCentreReportMonthWises
                     .AsNoTracking()
                     .Where(predicate)
                     .OrderBy(orderBy ?? new List<OrderBy>
                     {
                         new OrderBy
                         {
-                            Property = "Date",
+                            Property = "Month",
                             Direction = System.ComponentModel.ListSortDirection.Ascending
                         }
                     })

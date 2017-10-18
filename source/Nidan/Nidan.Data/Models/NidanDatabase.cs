@@ -2163,6 +2163,14 @@ namespace Nidan.Data.Models
                 .Property(e => e.StudentCode)
                 .IsUnicode(false);
 
+            modelBuilder.Entity<SummaryReport>()
+                .Property(e => e.TotalPaidAmount)
+                .HasPrecision(38, 2);
+
+            modelBuilder.Entity<SummaryReport>()
+                .Property(e => e.BalanceAmount)
+                .HasPrecision(38, 2);
+
             base.OnModelCreating(modelBuilder);
         }
     }

@@ -2868,7 +2868,7 @@ namespace Nidan.Business
             List<OrderBy> orderBy = null, Paging paging = null)
         {
             //var candidateFeeData = RetrieveCandidateFees(organisationId, e => e.CentreId == centreId && e.FeeTypeId == (int)FeeType.Admission && e.PaymentDate.Value.Day == date.Day && e.PaymentDate.Value.Month == date.Month && e.PaymentDate.Value.Year == date.Year);
-            var candidateFeeData = RetrieveSummaryReports(organisationId, centreId, e => e.CentreId == centreId && e.FeeTypeId == (int)FeeType.Installment && e.PaymentDate.Value.Day == date.Day && e.PaymentDate.Value.Month == date.Month && e.PaymentDate.Value.Year == date.Year);
+            var candidateFeeData = RetrieveSummaryReports(organisationId, centreId, e => e.CentreId == centreId && e.FeeTypeId == (int)FeeType.Installment && e.ISPaymentDone && e.PaymentDate.Value.Day == date.Day && e.PaymentDate.Value.Month == date.Month && e.PaymentDate.Value.Year == date.Year);
             //var studentCodes = candidateFeeData.Select(e => e.StudentCode).ToList();
             //var registrationData = RetrieveRegistrations(organisationId, e => e.CentreId == centreId && studentCodes.Contains(e.StudentCode));
             return candidateFeeData;
@@ -2879,7 +2879,7 @@ namespace Nidan.Business
             var _today = DateTime.UtcNow;
             var date = _today.Date;
             var mobilizationSummaryReports = new List<MobilizationSummaryReport>();
-            var data = _nidanDataService.RetriveMobilizationCountReportByToday(organisationId, e => e.Date.Day == _today.Day && e.Date.Month == _today.Month && e.Date.Year == _today.Year).Items.ToList();
+            var data = _nidanDataService.RetriveMobilizationCountReportByMonthWise(organisationId, e => e.Month == _today.Month && e.Year == _today.Year).Items.ToList();
             var centres = _nidanDataService.RetrieveCentres(organisationId, e => true).Items.ToList();
             foreach (var centre in centres)
             {

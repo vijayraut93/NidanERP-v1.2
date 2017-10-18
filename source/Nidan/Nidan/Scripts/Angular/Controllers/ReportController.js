@@ -40,7 +40,7 @@
         vm.searchExpenseByDate = searchExpenseByDate;
         vm.searchStockByDate = searchStockByDate;
         vm.searchMobilizationCountReportBydate = searchMobilizationCountReportBydate;
-        vm.searchMobilizationCountReportByToday = searchMobilizationCountReportByMonth;
+        vm.searchMobilizationCountReportByMonth = searchMobilizationCountReportByMonth;
         vm.searchMobilizationCountReportByMonthAndYear = searchMobilizationCountReportByMonthAndYear;
         vm.searchFixAssetByDate = searchFixAssetByDate;
         vm.downloadEnquiryCSVByDate = downloadEnquiryCSVByDate;
@@ -253,9 +253,9 @@
         }
 
         function searchMobilizationCountReportByMonth() {
-            vm.orderBy.property = "Date";
+            vm.orderBy.property = "Month";
             vm.orderBy.class = "asc";
-            order("Date");
+            order("Month");
             return ReportService.searchMobilizationCountReportByMonth().then(function (response) {
                     vm.reports = response.data;
                     vm.searchMessage = vm.reports.length === 0 ? "No Records Found" : "";
@@ -389,6 +389,8 @@
             vm.date = date;
             return ReportService.retrieveRegistrationSummaryByDate(vm.centreId, vm.date).then(function (response) {
                 vm.registrationSummaryReports = response.data.Items;
+                vm.downPaymentSummaryReports = null;
+                vm.installmentSummaryReports = null;
                 return vm.registrationSummaryReports;
             });
         } 
@@ -398,6 +400,8 @@
             vm.date = date;
             return ReportService.retrieveDownPaymentSummaryByDate(vm.centreId, vm.date).then(function (response) {
                 vm.downPaymentSummaryReports = response.data.Items;
+                vm.installmentSummaryReports = null;
+                vm.registrationSummaryReports = null;
                 return vm.downPaymentSummaryReports;
             });
         }
@@ -407,6 +411,8 @@
             vm.date = date;
             return ReportService.retrieveInstallmentSummaryByDate(vm.centreId, vm.date).then(function (response) {
                 vm.installmentSummaryReports = response.data.Items;
+                vm.registrationSummaryReports = null;
+                vm.downPaymentSummaryReports = null;
                 return vm.installmentSummaryReports;
             });
         }
